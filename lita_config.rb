@@ -39,6 +39,11 @@ Lita.configure do |config|
     config.redis[:url] = "redis://127.0.0.1:6379"
   end
 
+  config.http.port = ENV["PORT"]
+  unless config.http.port
+    config.http.port = 8080
+  end
+
   #puts config.redis[:url]
   
   #config.redis[:url] = ENV["REDISTOGO_URL"]
