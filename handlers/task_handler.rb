@@ -8,7 +8,7 @@ module Lita
       #
       route /^set group to (.*)$/, :group=, command:true
       route /^(add|remove) (.*) (from|to) team (.*)$/i, :team_member, command:true
-      route /^list team members$/i, :list_team_members, command:true
+      route /^team members$/i, :team_members, command:true
 
       #will check it later
       route /^set ([^']+)'s nickname to (.*)$/i, :nickname=, command:true
@@ -47,15 +47,15 @@ module Lita
       end
 
       
-      def list_team_members(res)
+      def team_members(res)
         g = group(res)
         unless g
           return
         end
         key = "#{RPREFIX}:#{g}:team"
         #puts key
-        puts redis.smembers(key)
-        m = redis.smembers(key).join("\n").capitalize
+        #puts redis.smembers(key)
+        m = redis.smembers(key).map(&:capitalize).join("\n")
         if m.empty?
           res.reply("There no member in #{g}")
         else
@@ -111,8 +111,8 @@ module Lita
       def team_tasks(res)
         g = res.matches[0][0].downcase
         members = redis.smembers("#{RPREFIX}:#{g}:team")
-        puts members
-        puts members.class
+        #puts members
+        #puts members.class
         all = members.map do |m|
           key = "#{RPREFIX}:#{g}:team:#{member_redis(m)}:tasks"
           tasks = list_tasks(key)

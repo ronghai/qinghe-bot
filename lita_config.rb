@@ -1,4 +1,5 @@
 
+require './lita_env'
 require './handlers/task_handler'
 
 Lita.configure do |config|
@@ -38,12 +39,11 @@ Lita.configure do |config|
   unless config.redis[:url]
     config.redis[:url] = "redis://127.0.0.1:6379"
   end
-
-  config.http.port = ENV["PORT"]
-  unless config.http.port
-    config.http.port = 8080
+  
+  if Lita::env?(:production)
+    config.http.port = ENV["PORT"]
   end
-
+  
   #puts config.redis[:url]
   
   #config.redis[:url] = ENV["REDISTOGO_URL"]
