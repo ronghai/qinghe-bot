@@ -27,13 +27,14 @@ Lita.configure do |config|
   ## Example: Set options for the chosen adapter.
   # config.adapter.username = "myname"
   # config.adapter.password = "secret"
-
+  puts config.adapters.slack.token
   ## Example: Set options for the Redis connection.
   config.redis[:url] = ENV["REDISCLOUD_URL"]
+  puts "redis url #{config.redis[:url]}"
   unless config.redis[:url]
     config.redis[:url] = ENV["REDISTOGO_URL"]
   end
-  puts "redis #{config.redis[:url]}"
+  puts "redis url #{config.redis[:url]}"
   unless config.redis[:url]
     config.redis[:url] = "redis://127.0.0.1:6379"
   end
