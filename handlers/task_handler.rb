@@ -1,5 +1,10 @@
 
 require 'time'
+class String
+  def titleize
+    self.split(/ |\_/).map(&:capitalize).join(" ")
+  end
+end
 module Lita
   module Handlers
     class TaskHandler < Handler
@@ -55,7 +60,7 @@ module Lita
         key = "#{RPREFIX}:#{g}:team"
         #puts key
         #puts redis.smembers(key)
-        m = redis.smembers(key).map(&:capitalize).join("\n")
+        m = redis.smembers(key).map(&:titleize).join("\n")
         if m.empty?
           res.reply("There no member in #{g}")
         else
