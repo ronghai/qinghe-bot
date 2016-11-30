@@ -110,18 +110,19 @@ module Lita
 
       #list g1's task
       
-      def team_tasks(res)
-        g = res.matches[0][0].downcase
-        members = redis.smembers("#{RPREFIX}:#{g}:team")
-        #puts members
-        #puts members.class
+      def tasks_with_format(g, format=:markdown)
+        members = redis.smembers("#{RPREFIX}:#{g.downcase}:team")
         all = members.map do |m|
           key = "#{RPREFIX}:#{g}:team:#{redisedname(m)}:tasks"
-          tasks = list_tasks(key)
-          "#{m.titleize}\n#{tasks}\n"
+          tasks = list_tasks(key, format)
+          "* #{m.titleize}\n#{tasks}"
         end
-        all = all.join("\n")
-        res.reply(all)
+        all.join("\n")
+      end
+
+      def team_tasks(res)
+        g = res.matches[0][0].downcase
+        res.reply(tasks_with_format(g))
       end
 
       #clear Limei's task
@@ -161,12 +162,20 @@ module Lita
       end
 
 
-      def list_tasks(key)
+      def list_tasks(key, format = nil)
         list = redis.lrange(key, 0, -1)
-        unless list
-          return []
+        if format == :markdown
+          if list.empty?
+            list = ["no outstanding task"]
+          end
+          list.map.with_index { |x, i| "    #{i+1}. #{x}" }.join("\n")
+        else
+          if list.empty?
+            return []
+          end
+          list.map.with_index { |x, i| "\##{i+1} #{x}" }.join("\n")
         end
-        list.map.with_index { |x, i| "\##{i+1} #{x}" }.join("\n")
+        
         #tasks = ""
         #list.each_index {|x| task << "\##{x} #{list[x]}\n" }
         #tasks
@@ -230,8 +239,8 @@ module Lita
       def prepare_email(res)
         g = group(res)
         subject = "#{g.upcase} Tasks " + (Time.now +  (60 * 60 * 24)).strftime("%Y%m%d")
-        #res.reply(subject)
-        res.reply(render_template("email", name: res.user.name, subject: subject))
+        tasks =  tasks_with_format(g)
+        res.reply(render_template("email", tasks: tasks, subject: subject))
       end
       Lita.register_handler(self)
     end
