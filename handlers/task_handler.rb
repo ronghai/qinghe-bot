@@ -9,7 +9,7 @@ module Lita
   module Handlers
     class TaskHandler < Handler
       RPREFIX = "dev"
-      
+      template_root File.expand_path("../../templates", __FILE__)
       #
       route /^set group to (.*)$/, :group=, command:true
       route /^(add|remove) (.*) (from|to) team (.*)$/i, :team_member, command:true
@@ -230,7 +230,8 @@ module Lita
       def prepare_email(res)
         g = group(res)
         subject = "#{g.upcase} Tasks " + (Time.now +  (60 * 60 * 24)).strftime("%Y%m%d")
-        res.reply(subject)
+        #res.reply(subject)
+        res.reply(render_template("email", name: res.user.name, subject: subject))
       end
       Lita.register_handler(self)
     end
