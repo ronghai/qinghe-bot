@@ -20,7 +20,7 @@ module Lita
       route /^set ([^']+)'s team leader to (.*)$/i, :teamleader=, command:true
       
       route /^assign ["]?(.*)["]? to (.*)$/i, :assign_task, command:true
-      route /^glist ([^']+)'s tasks$/i, :team_tasks, command:true
+      route /^show ([^']+)'s tasks$/i, :team_tasks, command:true
       route /^(clear|list) ([^']+)'s tasks$/i, :tasks, command:true
       
       
@@ -29,7 +29,7 @@ module Lita
       route /^remove #(\d+) from ([^']+)([']s list)?/i, :remove_task, command:true
       
       #check
-      route /^(add|remove) (.*) (from|to) (.*)[']s (to|cc|bcc) list$/i, :task_receiver, command:true
+      route /^(add|remove) (.*) (from|to) (.*)[']s (to|cc|bcc) list$/i, :report_receiver, command:true
       #'      
       route /^prepare email$/i, :prepare_email, command:true
       #'
@@ -54,9 +54,6 @@ module Lita
       
       def team_members(res)
         g = group(res)
-        unless g
-          return
-        end
         key = "#{RPREFIX}:#{g}:team"
         #puts key
         #puts redis.smembers(key)
@@ -74,7 +71,7 @@ module Lita
       # dev:member:realname = {} // nickname to realname
       def nickname=(res)
         matches =  res.matches[0]
-        realname =  matches[0]
+        realname =  matches[0].titleize
         nickname =  matches[1].downcase
         key = "#{RPREFIX}:member:nickname"
         old = redis.hget(key, realname)
@@ -106,7 +103,7 @@ module Lita
         task = res.matches[0][0].strip
         member = real_member(res, res.matches[0][1].strip)
         #puts "member is #{member}"
-        key = "#{RPREFIX}:#{g}:team:#{member_redis(member)}:tasks"
+        key = "#{RPREFIX}:#{g}:team:#{redisedname(member)}:tasks"
         redis.rpush(key, task)
         res.reply("#{member}\n#{list_tasks(key)}")
       end
@@ -119,9 +116,9 @@ module Lita
         #puts members
         #puts members.class
         all = members.map do |m|
-          key = "#{RPREFIX}:#{g}:team:#{member_redis(m)}:tasks"
+          key = "#{RPREFIX}:#{g}:team:#{redisedname(m)}:tasks"
           tasks = list_tasks(key)
-          "#{m.capitalize}\n#{tasks}\n"
+          "#{m.titleize}\n#{tasks}\n"
         end
         all = all.join("\n")
         res.reply(all)
@@ -135,7 +132,7 @@ module Lita
         matches =  res.matches[0]
         cmd = matches[0].downcase
         member = real_member(res, matches[1])
-        key = "#{RPREFIX}:#{g}:team:#{member_redis(member)}:tasks"
+        key = "#{RPREFIX}:#{g}:team:#{redisedname(member)}:tasks"
         if cmd == 'clear'
           redis.del(key)
           res.reply("all tasks have been removed")
@@ -156,7 +153,7 @@ module Lita
         ti = matches[0].to_i - 1
         member = real_member(res, matches[1])
         g = group(res)
-        key = "#{RPREFIX}:#{g}:team:#{member_redis(member)}:tasks"
+        key = "#{RPREFIX}:#{g}:team:#{redisedname(member)}:tasks"
         task = redis.lrange(key, ti, ti)
         redis.lrem(key, 1, task)
         res.reply("#{task[0]} has been removed from #{member}'s list\n"+
@@ -175,21 +172,21 @@ module Lita
         #tasks
       end
       
-      def member_redis(member)
+      def redisedname(member)
         member.split.join.downcase
       end
 
       def real_member(res, nickname)
-        real =redis.hget("#{RPREFIX}:member:realname", nickname)
+        real =redis.hget("#{RPREFIX}:member:realname", nickname.downcase)
         #puts "#{nickname}'s real name is #{real}"
-        real.nil? ? nickname : real.capitalize
+        real.nil? ? nickname : real.titleize
       end
 
       #add/remove email from/to g1:task's to/cc/bcc list
       # dev:g1:task:receiver:[to|cc|bcc]
       #
       #(add|remove) (.*) (from|to) (.*)[']s (to|cc|bcc) list$/
-      def task_receiver(res)
+      def report_receiver(res)
         matches =  res.matches[0]
         cmd =  matches[0].downcase
         email =  matches[1] #.downcase
