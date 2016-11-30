@@ -1,4 +1,5 @@
 source "https://rubygems.org"
+ruby ENV['RUBY_VERSION']|| '2.2.6'
 
 gem "lita"
 gem "lita-slack"
