@@ -1,6 +1,5 @@
 
-require './lita_env'
-require './handlers/task_handler'
+require './lolita'
 
 Lita.configure do |config|
   # The name your robot will use.
@@ -30,15 +29,15 @@ Lita.configure do |config|
   # config.adapter.password = "secret"
   #puts config.adapters.slack.token
   ## Example: Set options for the Redis connection.
-  config.redis[:url] = ENV["REDISCLOUD_URL"]
+  config.redis[:url] = ENV["REDISCLOUD_URL"] || ENV["REDISTOGO_URL"] || "redis://127.0.0.1:6379"
   #puts "redis url #{config.redis[:url]}"
-  unless config.redis[:url]
-    config.redis[:url] = ENV["REDISTOGO_URL"]
-  end
+  #unless config.redis[:url]
+  #  config.redis[:url] = ENV["REDISTOGO_URL"]
+  #end
   #puts "redis url #{config.redis[:url]}"
-  unless config.redis[:url]
-    config.redis[:url] = "redis://127.0.0.1:6379"
-  end
+  #unless config.redis[:url]
+  #  config.redis[:url] = "redis://127.0.0.1:6379"
+  #end
   
   if Lita::env?(:production)
     config.http.port = ENV["PORT"]

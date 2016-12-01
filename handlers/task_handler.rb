@@ -2,7 +2,7 @@
 require 'time'
 class String
   def titleize
-    self.split(/ |\_/).map(&:capitalize).join(" ")
+    self.split(/ |:|\_/).map(&:capitalize).join(" ")
   end
 end
 module Lita
@@ -20,18 +20,20 @@ module Lita
       route /^set ([^']+)'s team leader to (.*)$/i, :teamleader=, command:true
       
       route /^assign ["]?(.*)["]? to (.*)$/i, :assign_task, command:true
+      route /^[|](.*)[|](.*)$/i, :assign_task, command:true
       route /^show ([^']+)'s tasks$/i, :team_tasks, command:true
       route /^(clear|list) ([^']+)'s tasks$/i, :tasks, command:true
       
       
       
       #check
-      route /^remove #(\d+) from ([^']+)([']s list)?/i, :remove_task, command:true
+      route /^[!]#(\d+)[|](.*)$/, :remove_task, command:true
+      route /^remove #(\d+) from ([^']+)([']s list)?$/i, :remove_task, command:true
       
       #check
       route /^(add|remove) (.*) (from|to) (.*)[']s (to|cc|bcc) list$/i, :report_receiver, command:true
       #'      
-      route /^prepare email$/i, :prepare_email, command:true
+      route /^preview email$/i, :preview_email, command:true
       #'
       #add/remove member from/to g1:team
       # dev:g1:team = []
@@ -210,7 +212,7 @@ module Lita
         else
           redis.srem(key, email)
         end      
-        res.reply("#{email} has been #{cmd}ed #{matches[2]} #{part}'s #{rct} list")
+        res.reply("#{email} has been #{cmd}ed #{matches[2]} #{part.titleize}'s #{rct} list")
       end
 
 
@@ -236,7 +238,7 @@ module Lita
 
       #prepare email
       
-      def prepare_email(res)
+      def preview_email(res)
         g = group(res)
         subject = "#{g.upcase} Tasks " + (Time.now +  (60 * 60 * 24)).strftime("%Y%m%d")
         tasks =  tasks_with_format(g)

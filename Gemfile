@@ -6,6 +6,9 @@ gem "lita-slack"
 #gem "lita-up"
 gem "lita-whois"
 gem 'redis', '~>3.2'
+
+gem 'pandoc-ruby'
+gem 'mail'
 # Uncomment to use the HipChat adapter
 # gem "lita-hipchat"
 
