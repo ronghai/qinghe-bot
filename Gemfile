@@ -5,6 +5,8 @@ gem "lita"
 gem "lita-slack"
 #gem "lita-up"
 gem "lita-whois"
+gem "lita-heroku-keepalive"
+
 gem 'redis', '~>3.2'
 
 gem 'pandoc-ruby'
