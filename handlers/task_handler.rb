@@ -159,8 +159,8 @@ module Lita
         key = "#{RPREFIX}:#{g}:team:#{redisedname(member)}:tasks"
         task = redis.lrange(key, ti, ti)
         redis.lrem(key, 1, task)
-        res.reply("#{task[0]} has been removed from #{member}'s list\n"+
-            "Now#{member}is working on the following\n#{list_tasks(key)}")
+        res.reply("'#{task[0]}' has been removed from #{member}'s list\n"+
+            "Now #{member} is working on the following\n#{list_tasks(key)}")
       end
 
 
